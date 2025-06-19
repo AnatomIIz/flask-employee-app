@@ -1,0 +1,163 @@
+<!-- templates/update.html -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>แก้ไขข้อมูลพนักงาน</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <div class="alert alert-primary d-flex align-items-center justify-content-between shadow-sm rounded-3 p-3 mb-4">
+      <div>
+        <h2 class="mb-0">📝 แก้ไขข้อมูลพนักงาน</h2>
+        <large class="text-muted">รหัสพนักงาน: <strong>{{ employee.id }}</strong></large>
+      </div>
+    </div>
+    <div class="card shadow">
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                <div class="col-md-3">
+                    <label for="pre" class="form-label">*คำนำหน้า:</label><br>
+                    <select name="pre" id="pre" class="form-control" required>
+                      <option value="">-- คำนำหน้า --</option>
+                      <option value="นาย" {% if employee.pre =='นาย' %}selected{% endif %}>นาย</option>
+                      <option value="นาง" {% if employee.pre =='นาง' %}selected{% endif %}>นาง</option>
+                      <option value="นางสาว" {% if employee.pre =='นางสาว' %}selected{% endif %}>นางสาว</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                  <label for="name" class="form-label">*ชื่อ:</label>
+                  <input name="name" id="name" class="form-control" value="{{ employee.name }}" required>
+                </div>
+                <div class="col-md-3">
+                  <label for="sur_name" class="form-label">*นามสกุล:</label>
+                  <input name="sur_name" id="sur_name" class="form-control" value="{{ employee.sur_name }}" required>
+                </div>
+                <div class="col-md-3">
+                  <label for="type" class="form-label">*ประเภท:</label><br>
+                  <select name="type" id="type" class="form-control" required>
+                    <option value="">-- ประเภท --</option>
+                    <option value="รายวัน" {% if employee.type =='รายวัน' %}selected{% endif %}>รายวัน</option>
+                    <option value="รายเดือน" {% if employee.type =='รายเดือน' %}selected{% endif %}>รายเดือน</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label for="department_id" class="form-label">แผนก:</label><br>
+                  <select name="department_id" id="department_id" class="form-control">
+                    <option value="">-- แผนก --</option>
+                      {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if dept.id|string == employee.department_id|string %}selected{% endif %}>
+                      {{ dept.name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label for="id_card" class="form-label">*เลขบัตร ปชช:</label>
+                  <input name="id_card" id="id_card" class="form-control" value="{{ employee.id_card }}" required>
+                </div>
+                <div class="col-md-3">
+                  <label for="gender" class="form-label">*เพศ:</label><br>
+                  <select name="gender" id="gender" class="form-control" required>
+                    <option value="">-- เพศ --</option>
+                    <option value="ชาย" {% if employee.gender =='ชาย' %}selected{% endif %}>ชาย</option>
+                    <option value="หญิง" {% if employee.gender =='หญิง' %}selected{% endif %}>หญิง</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label for="nationality" class="form-label">สัญชาติ:</label>
+                  <input name="nationality" id="nationality" class="form-control" value="{{ employee.nationality }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="senior" class="form-label">วุฒิ:</label>
+                  <input name="senior" id="senior" class="form-control" value="{{ employee.senior }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="birth" class="form-label">*วันเกิด:</label>
+                  <input name="birth" id="birth" class="form-control" value="{{ employee.birth }}" required>
+                </div>
+                <div class="col-md-3">
+                  <label for="start_date" class="form-label">วันเริ่มงาน:</label>
+                  <input name="start_date" id="start_date" class="form-control" value="{{ employee.start_date }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="bank_account" class="form-label">เลขบัญชี:</label>
+                  <input name="bank_account" id="bank_account" class="form-control" value="{{ employee.bank_account }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="phone" class="form-label">เบอร์โทร:</label>
+                  <input name="phone" id="phone" class="form-control" value="{{ employee.phone }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="email" class="form-label">Email:</label>
+                  <input name="email" id="email" class="form-control" value="{{ employee.email }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="address" class="form-label">*ที่อยู่:</label>
+                  <input name="address" id="address" class="form-control" value="{{ employee.address }}" required>
+                </div>
+                <div class="col-md-3">
+                  <label for="main_skill" class="form-label">ความสามารถหลัก:</label>
+                  <input name="main_skill" id="main_skill" class="form-control" value="{{ employee.main_skill }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="sub_skill1" class="form-label">ความสามารถอื่น 1:</label>
+                  <input name="sub_skill1" id="sub_skill1" class="form-control" value="{{ employee.sub_skill1 }}">
+                </div>
+                <div class="col-md-3">
+                  <label for="sub_skill2" class="form-label">ความสามารถอื่น 2:</label>
+                  <input name="sub_skill2" id="sub_skill2" class="form-control" value="{{ employee.sub_skill2 }}">
+                </div>
+                <div class="col-12"><hr></div>
+                <div class="col-12 mt-3"><h4>ข้อมูลการออกจากงาน</h4></div>
+                <div class="col-md-3">
+                  <label for="exit_date" class="form-label">วันออก:</label>
+                  <input name="exit_date" id="exit_date" class="form-control" value="{{ employee.exit_date if employee.exit_date else '' }}" placeholder="วันออก (dd/mm/yyyy)">
+                </div>
+                <div class="col-md-3">
+                  <label for="exit_reason" class="form-label">หมายเหตุ:</label>
+                  <input name="exit_reason" id="exit_reason" class="form-control" value="{{ employee.exit_reason if employee.exit_reason else '' }}" placeholder="หมายเหตุ">
+                </div>
+                <div class="col-12"><hr></div>
+                <div class="col-12">
+                    <input type="hidden" name="next_url" value="{{ request.referrer }}">
+                    <button type="submit" class="btn btn-success">บันทึก</button>
+                    <a href="javascript:history.back()" class="btn btn-secondary">ย้อนกลับ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+  <hr class="my-5">
+  <h4>ประวัติการแก้ไข</h4>
+  <div class="table-responsive">
+        <table class="table table-striped">
+        <thead class="table-light">
+          <tr>
+            <th>เวลา</th>
+            <th>ชื่อ</th>
+            <th>นามสกุล</th>
+            <th>เพศ</th>
+            <th>แผนก</th>
+            <th>รายละเอียดการเปลี่ยนแปลง</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in history %}
+          <tr>
+            <td>{{ h.updated_at }}</td>
+            <td>{{ h.name }}</td>
+            <td>{{ h.sur_name }}</td>
+            <td>{{ h.gender }}</td>
+            <td>{{ departments | selectattr("id", "equalto", h.department_id) | map(attribute="name") | list | first or "ไม่ระบุ" }}</td>
+            <td>{{ h.changes|safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+  </div>
+
+</div>
+</body>
+</html>

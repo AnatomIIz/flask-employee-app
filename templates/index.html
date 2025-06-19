@@ -1,0 +1,342 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ระบบจัดเก็บประวัติพนักงาน</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+  <h1 class="mb-4">ระบบจัดเก็บประวัติพนักงาน</h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message|safe }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="text-end mb-3">
+    <a href="{{ url_for('export') }}" class="btn btn-success">Export to Excel</a>
+  </div>
+
+   <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">ระบบพนักงาน</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ms-auto">
+             <li class="nav-item">
+                <a href="{{ url_for('departments') }}" class="nav-link">
+                    ดูรายการแผนกทั้งหมด
+                </a>
+              </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#add-form">เพิ่มพนักงาน</a>
+            </li>
+             <!-- Dropdown แผนก -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              จัดกลุ่มแผนก
+            </a>
+            <ul class="dropdown-menu p-3" style="max-height: 300px; overflow-y: auto;">
+              {% for dept in departments %}
+              <li>
+                <div class="form-check">
+                  <input class="form-check-input dept-filter" type="checkbox" value="{{ dept }}" id="dept{{ loop.index }}">
+                  <label class="form-check-label" for="dept{{ loop.index }}">{{ dept }}</label>
+                </div>
+              </li>
+              {% endfor %}
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <form method="get" class="row g-2 mb-4">
+      <div class="col-md-2">
+        <input type="text" name="name" class="form-control" placeholder="ชื่อหรือนามสกุล" value="{{ search_params.name }}">
+      </div>
+      <div class="col-md-2">
+        <select name="gender" class="form-control">
+          <option value="">-- เพศ --</option>
+          <option value="ชาย" {% if search_params.gender =='ชาย' %}selected{% endif %}>ชาย</option>
+          <option value="หญิง" {% if search_params.gender =='หญิง' %}selected{% endif %}>หญิง</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="department" class="form-control" id="search-department">
+          <option value="">-- แผนก --</option>
+          {% for dept in departments %}
+            <option value="{{ dept }}" {% if search_params.department == dept %}selected{% endif %} {% if dept =='อื่นๆ' %}data-other="true"{% endif %}>{{ dept }}</option>
+          {% endfor %}
+            <option value="อื่นๆ" {% if search_params.department =='อื่นๆ' %}selected{% endif %}>อื่นๆ</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="text" name="birth_from" class="form-control" placeholder="วันเกิดจาก (dd/mm/yyyy)" value="{{ search_params.birth_from }}">
+      </div>
+      <div class="col-md-2">
+        <input type="text" name="birth_to" class="form-control" placeholder="ถึง (dd/mm/yyyy)" value="{{ search_params.birth_to }}">
+      </div>
+      <div class="col-md-12 text-first">
+        <button type="submit" class="btn btn-primary">ค้นหา</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">ล้าง</a>
+      </div>
+    </form>
+
+  <div class="table-responsive">
+    <table id="employeeTable" class="table table-bordered text-center table-striped" style="width: 100%;">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th><th>คำนำหน้า</th><th>ชื่อ</th><th>นามสกุล</th>
+          <th>ประเภท</th><th>แผนก</th><th>เลขบัตรประชาชน</th>
+          <th>เพศ</th><th>สัญชาติ</th><th>วุฒิ</th><th>วันเกิด</th>
+          <th>วันเริ่มงาน</th><th>การกระทำ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for emp in employee %}
+        <tr class="{% if emp.exit_date %}table-danger{% endif %}">
+          <td>{{ emp.id }}</td>
+          <td>{{ emp.pre }}</td>
+          <td style="min-width: 150px;">{{ emp.name }}</td>
+          <td style="min-width: 150px;">{{ emp.sur_name }}</td>
+          <td>{{ emp.type }}</td>
+          <td style="min-width: 120px;">{{ emp.department_name }}</td>
+          <td style="min-width: 150px;">{{ emp.id_card }}</td>
+          <td>{{ emp.gender }}</td>
+          <td>{{ emp.nationality }}</td>
+          <td>{{ emp.senior }}</td>
+          <td>{{ emp.birth  }}</td>
+          <td>{{ emp.start_date  }}</td>
+          <td style="min-width: 120px;">
+            <a href="{{ url_for('update', emp_id=emp.id) }}" class="btn btn-warning btn-sm">แก้ไข</a>
+            <button class="btn btn-danger btn-sm delete-btn" data-id="{{ emp.id }}">ลบ</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <a href="{{ url_for('full_table') }}" class="btn btn-outline-primary">เปิดเต็มหน้าจอ</a>
+
+    <hr class="my-4">
+        <h4 id="add-form" class="text-success fw-bold mb-4">
+          ➕ เพิ่มพนักงานใหม่
+        </h4>
+        <form id="addForm" class="row g-3">
+            <div class="col-md-2"><input name="id" class="form-control" placeholder="ID"></div>
+            <div class="col-md-2">
+                <select name="pre" class="form-control" required>
+                    <option value="">-- คำนำหน้า --</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                </select>
+            </div>
+            <div class="col-md-2"><input name="name" class="form-control" placeholder="ชื่อ"></div>
+            <div class="col-md-2"><input name="sur_name" class="form-control" placeholder="นามสกุล"></div>
+            <div class="col-md-2">
+                <select name="type" class="form-control" required>
+                    <option value="">-- ประเภท --</option>
+                    <option value="รายวัน">รายวัน</option>
+                    <option value="รายเดือน">รายเดือน</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="department" class="form-control" required id="add-department">
+                  <option value="">-- แผนก --</option>
+                  {% for dept in departments %}
+                    <option value="{{ dept }}" {% if dept =='อื่นๆ' %}data-other="true"{% endif %}>{{ dept }}</option>
+                  {% endfor %}
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+            </div>
+            <div class="col-md-2" id="otherDeptDiv" style="display: none;">
+              <input type="text" name="other_department" class="form-control" placeholder="ระบุชื่อแผนก" id="otherDeptInput">
+            </div>
+            <div class="col-md-3"><input name="id_card" class="form-control" placeholder="เลขบัตร ปชช."></div>
+            <div class="col-md-2">
+                <select name="gender" class="form-control" required>
+                    <option value="">-- เพศ --</option>
+                    <option value="ชาย">ชาย</option>
+                    <option value="หญิง">หญิง</option>
+                </select>
+            </div>
+            <div class="col-md-3"><input name="nationality" class="form-control" placeholder="สัญชาติ"></div>
+            <div class="col-md-3"><input name="senior" class="form-control" placeholder="วุฒิ"></div>
+            <div class="col-md-3"><input name="birth" class="form-control" placeholder="วันเกิด (dd/mm/yyyy)"></div>
+            <div class="col-md-3"><input name="start_date" class="form-control" placeholder="วันเริ่มงาน (dd/mm/yyyy)"></div>
+            <div class="col-md-3"><input name="bank_account" class="form-control" placeholder="เลขบัญชี"></div>
+            <div class="col-md-3"><input name="phone" class="form-control" placeholder="เบอร์โทร"></div>
+            <div class="col-md-3"><input name="email" class="form-control" placeholder="Email"></div>
+            <div class="col-md-3"><input name="address" class="form-control" placeholder="ที่อยู่"></div>
+            <div class="col-md-3"><input name="main_skill" class="form-control" placeholder="ความสามารถหลัก"></div>
+            <div class="col-md-3"><input name="sub_skill1" class="form-control" placeholder="ความสามารถอื่น 1"></div>
+            <div class="col-md-3"><input name="sub_skill2" class="form-control" placeholder="ความสามารถอื่น 2"></div>
+            <div class="col-12"><button type="submit" class="btn btn-primary">เพิ่มข้อมูล</button></div>
+        </form>
+
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+$(document).ready(function () {
+  // แสดง/ซ่อน ช่องกรอกแผนกอื่นๆ
+  $('#add-department').on('change', function () {
+    if ($(this).val() === 'อื่นๆ') {
+      $('#otherDeptDiv').show();
+    } else {
+      $('#otherDeptDiv').hide();
+      $('#otherDeptInput').val('');
+    }
+  });
+
+   // ลบพนักงาน
+  $('#employeeTable').on('click', '.delete-btn', function (e) {
+    e.preventDefault();
+    const button = $(this);
+    const empId = button.data('id');
+    const row = button.closest('tr');
+
+    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบพนักงานคนนี้?')) return;
+
+    $.ajax({
+      type: 'POST',
+      url: '/api/delete_employee',
+      data: JSON.stringify({ id: empId }),
+      contentType: 'application/json',
+      success: function (response) {
+        if (response.success) {
+          $('#employeeTable').DataTable().row(row).remove().draw();
+          alert("ลบข้อมูลเรียบร้อยแล้ว");
+        } else {
+          alert("เกิดข้อผิดพลาด: " + response.error);
+        }
+      },
+      error: function () {
+        alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์");
+      }
+    });
+  });
+
+  // เพิ่มพนักงานใหม่
+  $('#addForm').on('submit', async function (e) {
+    e.preventDefault();
+
+    const form = $(this);
+    let department = $('#add-department').val();
+    const otherDept = $('#otherDeptInput').val().trim();
+
+    if (department === "อื่นๆ" && otherDept !== "") {
+      try {
+        const deptAddRes = await $.post("/api/add_department", { department: otherDept });
+        if (deptAddRes.success) {
+          $('#add-department').append(`<option value="${otherDept}" selected>${otherDept}</option>`);
+          $('#add-department').val(otherDept);
+        } else {
+          alert("กรุณากรอกชื่อแผนกใหม่: " + deptAddRes.error);
+          return;
+        }
+      } catch {
+        alert("ไม่สามารถเพิ่มแผนกใหม่ได้");
+        return;
+      }
+    }
+
+    // ส่งข้อมูลพนักงาน
+    $.ajax({
+      type: 'POST',
+      url: '/api/add_employee',
+      data: form.serialize(),
+      success: function (response) {
+        if (response.success) {
+          $('#employeeTable').DataTable().row.add([
+            response.employee.id,
+            response.employee.pre,
+            response.employee.name,
+            response.employee.sur_name,
+            response.employee.type,
+            response.employee.department,
+            response.employee.id_card,
+            response.employee.gender,
+            response.employee.nationality,
+            response.employee.senior,
+            response.employee.birth,
+            response.employee.start_date,
+            response.employee.phone,
+            response.employee.email,
+            response.employee.address,
+            response.employee.bank_account,
+            response.employee.main_skill,
+            response.employee.sub_skill1,
+            response.employee.sub_skill2,
+            `<a href="/update/${response.employee.id}" class="btn btn-warning btn-sm">แก้ไข</a>
+             <button class="delete-btn btn btn-danger btn-sm" data-id="${response.employee.id}">ลบ</button>`
+          ]).draw(false);
+
+          $('#addForm')[0].reset();
+          $('#otherDeptDiv').hide();
+          alert("เพิ่มข้อมูลสำเร็จแล้ว!");
+        } else {
+          alert("เกิดข้อผิดพลาด: " + response.error);
+        }
+      },
+      error: function () {
+        alert("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้");
+      }
+    });
+  });
+
+  // DataTables init
+  var table = $('#employeeTable').DataTable({
+    scrollX: true,  // <== เพิ่ม scroll แนวนอน
+    autoWidth: true,
+    responsive: true,
+    "order": [[0, "asc"]],
+    "language": {
+      "search": "ค้นหา:",
+      "lengthMenu": "แสดง _MENU_ รายการต่อหน้า",
+      "zeroRecords": "ไม่พบข้อมูล",
+      "info": "แสดง _START_ ถึง _END_ จากทั้งหมด _TOTAL_ รายการ",
+      "infoEmpty": "ไม่มีข้อมูล",
+      "infoFiltered": "(จากทั้งหมด _MAX_ รายการ)",
+      pageLength: 10,
+      ordering: true
+    }
+  });
+
+  // ฟังก์ชัน escape regex และกรองแผนก
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function filterByDepartments() {
+    var selected = $('.dept-filter:checked').map(function () {
+      return escapeRegex(this.value);
+    }).get().join('|');
+
+    table.column(5).search(selected, true, false).draw();
+  }
+
+  $('.dept-filter').on('change', function () {
+    filterByDepartments();
+  });
+});
+</script>
+</div>
+</body>
+</html>
