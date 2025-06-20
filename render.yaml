@@ -1,9 +1,18 @@
 services:
   - type: web
-    name: flask-app
+    name: employee-app
     env: python
-    buildCommand: ""
-    startCommand: python app.py
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn employee:app
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: DB_HOST
+        value: dpg-d1acgdje5dus73ef848g-a
+      - key: DB_NAME
+        value: employee_4fjp
+      - key: DB_USER
+        value: employee_4fjp_user
+      - key: DB_PASS
+        value: Eqk2VK8b4GP5bIm45b4whkpK7OiOC9iT
