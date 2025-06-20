@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, session
 from datetime import datetime, date
-from math import floor
 from openpyxl import Workbook
 from openpyxl.styles import Font
 import mysql.connector
+import psycopg2
 import pandas as pd
 import os
 
@@ -11,11 +11,12 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 def get_connection():
-    return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="LhpBB3Db2025",
-        database="project"
+    return psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASS"),
+        port=5432
     )
 
 # ==================== ดึงรายชื่อแผนก ====================
@@ -110,6 +111,17 @@ def prepare_employee_data(employee_list):
             emp["exit_date_fmt"] = ""
 
     return employee_list
+
+@app.route("/test_db")
+def test_db():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT version();")
+        version = cur.fetchone()
+        return f"Database connected successfully: {version}"
+    except Exception as e:
+        return f"Connection failed: {e}"
 
 # ==================== หน้าแรก ====================
 @app.route('/')
