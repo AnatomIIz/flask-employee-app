@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, session
 from datetime import datetime, date
 from openpyxl import Workbook
+from psycopg2.extras import RealDictCursor
 from openpyxl.styles import Font
 import mysql.connector
 import psycopg2
@@ -22,7 +23,7 @@ def get_connection():
 # ==================== ดึงรายชื่อแผนก ====================
 def get_departments():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT DISTINCT name FROM departments ORDER BY name")
     departments = [row["name"] for row in cursor.fetchall()]
     conn.close()
@@ -127,7 +128,7 @@ def test_db():
 @app.route('/')
 def index():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     # ดึงค่าค้นหาจาก URL parameters
     name = request.args.get('name', '').strip()
@@ -287,7 +288,7 @@ def api_add_employee():
         dept_name = data.get('other_department', '').strip()
 
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT id FROM departments WHERE name = %s", (dept_name,))
     dept_row = cursor.fetchone()
 
@@ -355,7 +356,7 @@ def delete_employee_api():  # ✅ ชื่อไม่ซ้ำกับเด�
 @app.route('/update/<int:emp_id>', methods=['GET', 'POST'])
 def update(emp_id):
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     # ดึงข้อมูลพนักงานปัจจุบัน
     cursor.execute("""
@@ -538,7 +539,7 @@ def update(emp_id):
 @app.route('/departments')
 def departments():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM departments")
     departments = cursor.fetchall()
     conn.close()
@@ -614,7 +615,7 @@ def delete_department(dept_id):
 @app.route('/full_table')
 def full_table():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     # 1. รับค่าค้นหาจาก query string
     name = request.args.get('name', '').strip()
